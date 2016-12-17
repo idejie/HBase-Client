@@ -23,8 +23,6 @@ public class Operator {
     }
 
 
-
-
     /**
      * create table
      *
@@ -36,6 +34,13 @@ public class Operator {
         try {
             Connection connection= ConnectionFactory.createConnection(configuration);
             Admin admin=connection.getAdmin();
+            try {
+                admin.getNamespaceDescriptor("user201400301196");
+            } catch (IOException e) {
+                e.printStackTrace();
+                admin.createNamespace(NamespaceDescriptor.create("user201400301196").build());
+            }
+
             System.out.printf("已建立连接！");
             if (admin.tableExists(TableName.valueOf(table))){
                 System.out.println(table+"已存在！");
@@ -45,7 +50,7 @@ public class Operator {
                 admin.createTable(tableDescriptor);
                 System.out.println(table+"创建成功！");
             }
-
+            admin.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -69,7 +74,9 @@ public class Operator {
                 if(admin.isTableEnabled(TableName.valueOf(table))) admin.disableTable(TableName.valueOf(table));
                 admin.deleteTable(TableName.valueOf(table));
                 System.out.printf("已删除"+table+"!");
+                if (!admin.isTableEnabled(TableName.valueOf(table))) admin.enableTable(TableName.valueOf(table));
             }
+            admin.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -77,23 +84,56 @@ public class Operator {
 
 
     /**
-     * insert data
+     * modify table
+     * @param table 表名
+     * @param removeFam 删除列族
+     * @param putFam 添加列族
+     * @param column 修改的列
+     */
+    public static void modifyTable(String table,String removeFam,String putFam,String column){
+        try {
+            Connection connection = ConnectionFactory.createConnection(configuration);
+            Admin admin =connection.getAdmin();
+            if(admin.isTableEnabled(TableName.valueOf(table))) admin.disableTable(TableName.valueOf(table));
+            HTableDescriptor newTd=admin.getTableDescriptor(TableName.valueOf(table));
+            if (!removeFam.equals("")){
+                newTd.removeFamily(removeFam.getBytes());
+            }
+            if (!putFam.equals("null")){
+                HColumnDescriptor newCd=new HColumnDescriptor(putFam.getBytes());
+                newCd.setMaxVersions(10);//!!!???
+                newCd.setKeepDeletedCells(true);
+                newTd.addFamily(newCd);
+            }
+            admin.modifyTable(TableName.valueOf(table),newTd);
+            if (!admin.isTableEnabled(TableName.valueOf(table))) admin.enableTable(TableName.valueOf(table));
+            admin.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * put data
      * @param table 表名
      * @param family 列族
      * @param rowKey rowKey
      * @param column 列
      * @param value 值
      */
-    public static void insertData(String table,String family,String rowKey,String column,String value ){
+    public static void putData(String table,String family,String rowKey,String column,String value ){
         try {
             Connection connection =ConnectionFactory.createConnection(configuration);
             Table tableName =connection.getTable(TableName.valueOf(table));
             System.out.printf("已建立连接！");
             //列值
             Put put = new Put(rowKey.getBytes());
-            put.addColumn(family.getBytes(),column.getBytes(),value.getBytes());
+            put.add(family.getBytes(),column.getBytes(),value.getBytes());
+            put.setDurability(Durability. SYNC_WAL );
             tableName.put(put);
             System.out.println("已经在表["+table+"]的行"+"["+rowKey+"]插入列["+column+"]值："+value);
+            tableName.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -118,4 +158,6 @@ public class Operator {
             e.printStackTrace();
         }
     }
+
+
 }

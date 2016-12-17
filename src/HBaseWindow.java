@@ -5,6 +5,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.Map;
+import java.util.List;
 
 /**
  * Created by idejie on 16/12/16.
@@ -38,8 +41,9 @@ public class HBaseWindow {
         JPanel panel5=new JPanel();
         JPanel panel6=new JPanel();
 
-        panel3.setLayout(new GridLayout(6,1));
-//        panel3.add(new Label("exp3"));
+        panel3.setLayout(new GridLayout(7,1));
+        panel4.setLayout(new GridLayout(7,1));
+        panel3.add(new Label("exp3"));
         panel4.add(new Label("exp4"));
         panel5.add(new Label("exp5"));
         panel6.add(new Label("epx6"));
@@ -98,10 +102,90 @@ public class HBaseWindow {
                 String rowKey=rowVal.getText();
                 String col=colVal.getText();
                 String value=val.getText();
-                Operator.insertData(tab,family,rowKey,col,value);
+                Operator.putData(tab,family,rowKey,col,value);
                 System.out.println("已成功插入"+tab+","+family+","+rowKey+","+col+","+value);
             }
         });
+
+
+        //exp4
+        JPanel tabPan2=new JPanel();
+        tabPan2.setLayout(new GridLayout(1,2));
+        JLabel tabLab2=new JLabel("表名：");
+        JTextField tabVal2=new JTextField();
+        tabPan2.add(tabLab2);
+        tabPan2.add(tabVal2);
+
+
+
+        JPanel famPan2=new JPanel();
+        famPan2.setLayout(new GridLayout(1,2));
+        JLabel famLab2=new JLabel("列族：");
+        JTextField famVal2=new JTextField();
+        famPan2.add(famLab2);
+        famPan2.add(famVal2);
+
+        JPanel rowPan2=new JPanel();
+        rowPan2.setLayout(new GridLayout(1,2));
+        JLabel rowLab2=new JLabel("rowKey：");
+        JTextField rowVal2=new JTextField();
+        rowPan2.add(rowLab2);
+        rowPan2.add(rowVal2);
+
+
+
+        JPanel colPan2=new JPanel();
+        colPan2.setLayout(new GridLayout(1,2));
+        JLabel colLab2=new JLabel("列名：");
+        JTextField colVal2=new JTextField();
+        colPan2.add(colLab2);
+        colPan2.add(colVal2);
+
+
+        JPanel valPan2=new JPanel();
+        valPan2.setLayout(new GridLayout(1,2));
+        JLabel valLab2=new JLabel("值：");
+        JTextField val2=new JTextField();
+        valPan2.add(valLab2);
+        valPan2.add(val2);
+        panel4.add(tabPan2);
+        panel4.add(famPan2);
+        panel4.add(rowPan2);
+        panel4.add(colPan2);
+        panel4.add(valPan2);
+        JPanel upPan= new JPanel();
+        upPan.setLayout(new GridLayout(1,2));
+        JButton upBut=new JButton("更新");
+        upBut.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String tab=tabVal2.getText();
+                String family=famVal2.getText();
+                String rowKey=rowVal2.getText();
+                String col=colVal2.getText();
+                String value=val2.getText();
+                Operator.putData(tab,family,rowKey,col,value);
+                System.out.println("已成功插入"+tab+","+family+","+rowKey+","+col+","+value);
+            }
+        });
+        JButton xlcBut=new JButton("导入");
+        xlcBut.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fileChooser=new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                fileChooser.showDialog(new JLabel(),"选择");
+                File file =fileChooser.getSelectedFile();
+                Map<String,List<Map<String,String> > > result =getData(file.getAbsolutePath(),"sheet1");
+                List<Map<String,String>> resultCol=result.get("0");
+
+            }
+        });
+        upPan.add(upBut);
+        upPan.add(xlcBut);
+        panel4.add(upPan);
+
+
 
         content=new JPanel(cardLayout);
         content.add(panel3,"exp3");
@@ -137,6 +221,11 @@ public class HBaseWindow {
         Table.getContentPane().add(panelB,BorderLayout.SOUTH);
         Table.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         Table.setVisible(true);
+    }
+
+    private Map<String,List<Map<String,String>>> getData(String absolutePath, String sheet1) {
+        Map<String,List<Map<String,String> > > result=null;
+        return result;
     }
 
 
