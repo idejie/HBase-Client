@@ -225,6 +225,7 @@ public class HBaseWindow {
 
     private Map<String,List<Map<String,String>>> getData(String absolutePath, String sheet1) {
         Map<String,List<Map<String,String> > > result=null;
+
         return result;
     }
 
