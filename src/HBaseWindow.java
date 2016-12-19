@@ -58,8 +58,7 @@ public class HBaseWindow {
         panel4.setLayout(new GridLayout(7,1));
         panel3.add(new Label("exp3"));
         panel4.add(new Label("exp4"));
-        panel5.add(new Label("exp5"));
-        panel6.add(new Label("epx6"));
+
 
         //exp3
 
@@ -230,7 +229,35 @@ public class HBaseWindow {
         upPan.add(xlcBut);
         panel4.add(upPan);
 
+        //exp5
+        GridBagLayout layout=new GridBagLayout();
+        panel5.setLayout(layout);
+//        panel5.add(new Label("exp5"));
+        JPanel numPan=new JPanel();
+        numPan.setLayout(new GridLayout(1,2));
+        JLabel numLab=new JLabel("学号:");
+        JTextField numVal=new JTextField();
+        numPan.add(numLab);
+        numPan.add(numVal);
+        JButton queryBut=new JButton("查询");
+        JTextArea lesson=new JTextArea();
+        GridBagConstraints s= new GridBagConstraints();
+        s.fill=GridBagConstraints.BOTH;
+        s.gridwidth=0;//该方法是设置组件水平所占用的格子数，如果为0，就说明该组件是该行的最后一个
+        s.weightx = 0;
+        s.weighty=0;
+        layout.setConstraints(numPan,s);
+        layout.setConstraints(queryBut,s);
+        s.weightx = 1;//该方法设置组件水平的拉伸幅度，如果为0就说明不拉伸，不为0就随着窗口增大进行拉伸，0到1之间
+        s.weighty=1;//该方法设置组件垂直的拉伸幅度，如果为0就说明不拉伸，不为0就随着窗口增大进行拉伸，0到1之间
 
+        layout.setConstraints(lesson,s);
+        panel5.add(numPan);
+        panel5.add(queryBut);
+        panel5.add(lesson);
+
+
+        panel6.add(new Label("epx6"));
 
         content=new JPanel(cardLayout);
         content.add(panel3,"exp3");
