@@ -1,12 +1,25 @@
 
 import HBase.Operator;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.jruby.RubyProcess;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.Map;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -176,8 +189,40 @@ public class HBaseWindow {
                 fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 fileChooser.showDialog(new JLabel(),"选择");
                 File file =fileChooser.getSelectedFile();
+                String tab=tabVal2.getText();
+                String family=famVal2.getText();
+                String rowKey=rowVal2.getText();
+//                String col=colVal2.getText();
+//                String value=val2.getText();
                 Map<String,List<Map<String,String> > > result =getData(file.getAbsolutePath(),"sheet1");
-                List<Map<String,String>> resultCol=result.get("0");
+                List<Map<String,String>> list=result.get(rowKey);
+                int length=list.get(0).size();
+                List<Put>putList=new ArrayList<Put>();
+                String []col=new String[length];
+                String[]values=new String [length];
+                Set<String>get=list.get(0).keySet();
+                int c=0;
+                for (String test :
+                        get) {
+                    col[c] = test;
+                    values[c]=list.get(0).get(test);
+                    c++;
+                }
+                for (int i = 0; i < length; i++) {
+                    Put put=new Put(Bytes.toBytes("0"));
+                    put.add(Bytes.toBytes(family),Bytes.toBytes(col[i]),Bytes.toBytes(values[i]));
+                    putList.add(put);
+                }
+                try {
+                    Connection connection= ConnectionFactory.createConnection(Operator.configuration);
+                    System.out.println("xls connected");
+                    org.apache.hadoop.hbase.client.Table table=connection.getTable(TableName.valueOf(tab));
+                    table.put(putList);
+                    System.out.println("xls put");
+                    table.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
 
             }
         });
@@ -223,9 +268,42 @@ public class HBaseWindow {
         Table.setVisible(true);
     }
 
-    private Map<String,List<Map<String,String>>> getData(String absolutePath, String sheet1) {
-        Map<String,List<Map<String,String> > > result=null;
+    private Map<String,List<Map<String,String>>> getData(String path, String sheet1) {
+        Map<String,List<Map<String,String> > > result=new HashMap<String,List<Map<String,String>>>();
+        List<Map<String,String>>resultCells;
+        Map<String,String>resultCell;
+        try {
+            FileInputStream file=new FileInputStream(path);
+            POIFSFileSystem fileSystem=new POIFSFileSystem(file);
+            Workbook workbook =new HSSFWorkbook(fileSystem);
+            Sheet sheet=workbook.getSheet(sheet1);
+            int rowCount=sheet.getPhysicalNumberOfRows();
+            int colCount=sheet.getRow(0).getPhysicalNumberOfCells();
+            for (int i = 0; i < rowCount; i++) {
+                org.apache.poi.ss.usermodel.Row row =sheet.getRow(i);
 
+                row.getCell(0).setCellType(Cell.CELL_TYPE_STRING);
+                resultCells=new ArrayList<Map<String,String>>();
+                resultCell=new HashMap<String,String>();
+                String rowKey=row.getCell(0).toString();
+                for (int j = 1; j < colCount; j++) {
+                    Cell cell=row.getCell(j);
+                    if (cell!=null) {
+                        cell.setCellType(Cell.CELL_TYPE_STRING);
+                        String colName = sheet.getRow(0).getCell(j).toString();
+                        String cellVal = cell.toString();
+                        resultCell.put(colName, cellVal);
+                    }
+                }
+                resultCells.add(resultCell);
+                result.put(rowKey,resultCells);
+            }
+            file.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return result;
     }
 
