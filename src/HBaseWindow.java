@@ -240,6 +240,12 @@ public class HBaseWindow {
         numPan.add(numLab);
         numPan.add(numVal);
         JButton queryBut=new JButton("查询");
+        queryBut.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Operator.queryTable("user201400301196:"+numVal.getText());
+            }
+        });
         JTextArea lesson=new JTextArea();
         GridBagConstraints s= new GridBagConstraints();
         s.fill=GridBagConstraints.BOTH;
@@ -257,8 +263,22 @@ public class HBaseWindow {
         panel5.add(lesson);
 
 
-        panel6.add(new Label("epx6"));
-
+        panel6.add(new Label("exp6"));
+        JButton queryLesson=new JButton("查询所有课程名");
+        queryLesson.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Set<String> set=Operator.getDistinctCol("user201400301196:student","info","lesson1");
+                System.out.println("hh");
+                for (String str:
+                    set ) {
+                    System.out.println(str);
+                }
+            }
+        });
+        JButton queryTop10=new JButton("查询平均Top10");
+        panel6.add(queryLesson);
+        panel6.add(queryTop10);
         content=new JPanel(cardLayout);
         content.add(panel3,"exp3");
         content.add(panel4,"exp4");
@@ -286,7 +306,7 @@ public class HBaseWindow {
         exp6.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                cardLayout.show(content,"exp3");
+                cardLayout.show(content,"exp6");
             }
         });
         Table.getContentPane().add(content);

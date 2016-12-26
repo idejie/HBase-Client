@@ -3,10 +3,13 @@ package HBase;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by idejie on 16/12/16.
@@ -159,5 +162,59 @@ public class Operator {
         }
     }
 
+    /**
+     * query table
+     * @param table 表名
+     */
+    public static void queryTable(String table){
+        Connection connection= null;
+        try {
+            connection = ConnectionFactory.createConnection(configuration);
+            System.out.println("已经建立连接");
+            Table tableName =connection.getTable(TableName.valueOf(table));
+            ResultScanner scanner =tableName.getScanner(new Scan());
+            for (Result r:scanner
+                 ) {
+                System.out.println("获得rowkey"+new String(r.getRow()));
+                for (KeyValue v :
+                        r.raw()) {
+                    System.out.println("列："+new String(v.getFamily())+":"+new String(v.getQualifier())+"值为："+new String(v.getValue()));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static  Set<String> getDistinctCol(String table,String colFamilyName, String colName) {
+        Set<String> set = new HashSet<String>();
+        Connection connection= null;
+        try {
+            connection = ConnectionFactory.createConnection(configuration);
+            System.out.println("已经建立连接");
+            Table tableName =connection.getTable(TableName.valueOf(table));
+            ResultScanner scanner =tableName.getScanner(new Scan());
+            for (Result r:scanner
+                    ) {
+                System.out.println("获得rowkey"+new String(r.getRow()));
+                for (KeyValue v :
+                        r.raw()) {
+                    System.out.println("列："+new String(v.getFamily())+":"+new String(v.getQualifier())+"值为："+new String(v.getValue()));
 
+                    if (colName.equals(new String(v.getQualifier()))||new String(v.getQualifier()).equals("lesson2"))
+                        set.add(new String(v.getValue()));
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return set;
+    }
+
+    /**
+     * Top k 的问题(这里实现平均成绩top10)
+     * @param n
+     */
+    public static void topRank(int n){
+
+    }
 }
